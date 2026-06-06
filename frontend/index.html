@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI灏忚杞墽鏈?/title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "Microsoft YaHei", Arial, sans-serif; background: #1a1a2e; color: #eee; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        h1 { text-align: center; color: #00d4ff; margin-bottom: 10px; font-size: 28px; }
+        .subtitle { text-align: center; color: #888; margin-bottom: 30px; font-size: 14px; }
+        .main-content { display: flex; gap: 20px; height: calc(100vh - 180px); }
+        .panel { flex: 1; display: flex; flex-direction: column; background: #16213e; border-radius: 12px; padding: 16px; }
+        .panel-title { color: #00d4ff; font-size: 16px; margin-bottom: 10px; }
+        textarea { flex: 1; width: 100%; background: #0f3460; border: 1px solid #1a4a7a; border-radius: 8px; color: #fff; font-size: 14px; padding: 12px; resize: none; }
+        textarea:focus { outline: none; border-color: #00d4ff; }
+        .btn { background: #00d4ff; color: #1a1a2e; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: bold; }
+        .btn:hover { background: #00b8e6; }
+        .btn:disabled { background: #555; cursor: not-allowed; }
+        .output-area { flex: 1; background: #0f3460; border: 1px solid #1a4a7a; border-radius: 8px; color: #fff; font-size: 14px; padding: 12px; overflow-y: auto; white-space: pre-wrap; font-family: "Consolas", monospace; }
+        .status { text-align: center; color: #888; font-size: 14px; margin-top: 10px; }
+        .error { color: #ff6b6b; }
+        .success { color: #51cf66; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>馃幀 AI灏忚杞墽鏈伐鍏?/h1>
+        <p class="subtitle">鍩轰簬纭呭熀娴佸姩AI 路 Qwen2.5-7B 妯″瀷椹卞姩</p>
+        <div class="main-content">
+            <div class="panel">
+                <div class="panel-title">馃摉 绮樿创灏忚鏂囨湰锛堣嚦灏?绔犺妭锛?/div>
+                <textarea id="novelInput" placeholder="璇风矘璐村皬璇村唴瀹癸紝鑷冲皯闇€瑕?涓珷鑺傜殑鍐呭鎵嶈兘鐢熸垚鏈夌粨鏋勭殑鍓ф湰..."></textarea>
+                <button class="btn" id="convertBtn" onclick="convert()">寮€濮嬭浆鎹?/button>
+            </div>
+            <div class="panel">
+                <div class="panel-title">馃搫 鐢熸垚鐨刌AML鍓ф湰</div>
+                <div class="output-area" id="output">杞崲缁撴灉灏嗘樉绀哄湪杩欓噷...</div>
+                <button class="btn" onclick="download()" style="background:#51cf66; margin-top:10px">涓嬭浇YAML鏂囦欢</button>
+            </div>
+        </div>
+        <div class="status" id="status"></div>
+    </div>
+    <script>
+        let resultData = "";
+        async function convert() {
+            const novel = document.getElementById("novelInput").value.trim();
+            const btn = document.getElementById("convertBtn");
+            const status = document.getElementById("status");
+            const output = document.getElementById("output");
+            if (novel.length < 50) { alert("灏忚鍐呭澶煭锛?); return; }
+            btn.disabled = true;
+            btn.textContent = "杞崲涓?..";
+            status.textContent = "姝ｅ湪璋冪敤AI杞崲锛岃绋嶅€?..";
+            status.className = "status";
+            try {
+                const resp = await fetch("http://localhost:8081/api/convert", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ novel })
+                });
+                resultData = await resp.text();
+                output.textContent = resultData;
+                status.textContent = "鉁?杞崲鎴愬姛锛?;
+                status.className = "status success";
+            } catch (e) {
+                status.textContent = "鉂?杞崲澶辫触锛? + e.message;
+                status.className = "status error";
+            }
+            btn.disabled = false;
+            btn.textContent = "寮€濮嬭浆鎹?;
+        }
+        function download() {
+            if (!resultData) { alert("鍏堣浆鎹㈠啀涓嬭浇锛?); return; }
+            const blob = new Blob([resultData], { type: "text/yaml" });
+            const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+            a.download = "screenplay.yaml"; a.click();
+        }
+    </script>
+</body>
+</html>
